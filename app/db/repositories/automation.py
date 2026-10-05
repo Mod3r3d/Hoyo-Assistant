@@ -408,7 +408,7 @@ class GiftCodeRepository:
     @staticmethod
     async def is_redeemed(account_id: int, gift_code_id: int) -> bool:
         cursor = await db.conn.execute(
-            "SELECT COUNT(*) FROM giftcode_redemptions WHERE account_id = ? AND gift_code_id = ?",
+            "SELECT COUNT(*) FROM giftcode_redemptions WHERE account_id = ? AND gift_code_id = ? AND status IN ('SUCCESS', 'ALREADY_REDEEMED', 'EXPIRED', 'INVALID_CODE')",
             (account_id, gift_code_id),
         )
         return (await cursor.fetchone())[0] > 0

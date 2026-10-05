@@ -88,18 +88,27 @@ class HoYoLABRedeemProvider:
         if game == GameType.GENSHIN:
             url = cls.GENSHIN_REDEEM_URL
             game_biz = "hk4e_global"
+            server_map = {
+                "Asia": "os_asia",
+                "America": "os_usa",
+                "Europe": "os_euro",
+                "TW/HK/MO": "os_cht",
+            }
+            default_region = "os_asia"
+            origin = "https://genshin.hoyoverse.com"
         else:
             url = cls.HSR_REDEEM_URL
             game_biz = "hkrpg_global"
+            server_map = {
+                "Asia": "prod_official_asia",
+                "America": "prod_official_usa",
+                "Europe": "prod_official_eur",
+                "TW/HK/MO": "prod_official_cht",
+            }
+            default_region = "prod_official_asia"
+            origin = "https://hsr.hoyoverse.com"
 
-        # Chuẩn hóa server code của Hoyoverse (os_asia, os_usa, os_euro, os_cht)
-        server_map = {
-            "Asia": "os_asia",
-            "America": "os_usa",
-            "Europe": "os_euro",
-            "TW/HK/MO": "os_cht",
-        }
-        region_code = server_map.get(server_region, "os_asia")
+        region_code = server_map.get(server_region, default_region)
 
         params = {
             "uid": str(uid),
@@ -109,11 +118,31 @@ class HoYoLABRedeemProvider:
             "lang": "vi",
         }
 
+        # Tự động đồng bộ các biến thể cookie v1 và v2 (account_id, cookie_token)
+        cookie_parts = [p.strip() for p in cookie.split(";") if p.strip()]
+        cookie_dict = {}
+        for p in cookie_parts:
+            if "=" in p:
+                k, v = p.split("=", 1)
+                cookie_dict[k.strip()] = v.strip()
+
+        acc_id = cookie_dict.get("account_id") or cookie_dict.get("account_id_v2") or cookie_dict.get("ltuid_v2")
+        if acc_id:
+            cookie_dict.setdefault("account_id", acc_id)
+            cookie_dict.setdefault("account_id_v2", acc_id)
+
+        c_token = cookie_dict.get("cookie_token") or cookie_dict.get("cookie_token_v2")
+        if c_token:
+            cookie_dict.setdefault("cookie_token", c_token)
+            cookie_dict.setdefault("cookie_token_v2", c_token)
+
+        final_cookie = "; ".join(f"{k}={v}" for k, v in cookie_dict.items())
+
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Cookie": cookie,
-            "Referer": "https://genshin.hoyoverse.com/",
-            "Origin": "https://genshin.hoyoverse.com",
+            "Cookie": final_cookie,
+            "Referer": f"{origin}/",
+            "Origin": origin,
         }
 
         try:

@@ -161,6 +161,9 @@ class TestAutomationTasksAndScheduler(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self):
         settings.AUTOMATION_MODE = "live"
+        await db.conn.execute("DELETE FROM giftcode_redemptions WHERE response_msg LIKE '%DRY-RUN%'")
+        await db.conn.execute("DELETE FROM checkin_history WHERE reward_summary LIKE '%DRY-RUN%'")
+        await db.conn.commit()
         await db.close()
 
     async def test_checkin_task_dry_run(self):
