@@ -16,43 +16,78 @@ class CookieInputModal(Modal, title="Thêm / Cập Nhật Cookie HoYoLAB"):
     cookie_input = TextInput(
         label="Dán Cookie HoYoLAB của bạn vào đây",
         style=discord.TextStyle.paragraph,
-        placeholder="ltuid_v2=...; ltoken_v2=...; ltmid_v2=...;",
+        placeholder="ltuid_v2=...; ltoken_v2=...; cookie_token_v2=...;",
         required=True,
         min_length=20,
         max_length=2000,
     )
 
-    def __init__(self, account_id: int, discord_user_id: int, game: GameType, uid: int):
+    def __init__(
+        self,
+        discord_user_id: int,
+        target_scope: str = "all",
+        account_id: int | None = None,
+        game: GameType | None = None,
+        uid: int | None = None,
+    ):
         super().__init__()
-        self.account_id = account_id
         self.discord_user_id = discord_user_id
+        self.target_scope = target_scope
+        self.account_id = account_id
         self.game = game
         self.uid = uid
 
     async def on_submit(self, interaction: discord.Interaction):
         raw_cookie = self.cookie_input.value.strip()
 
-        # Lưu cookie đã mã hóa
-        await SessionRepository.save_session(
-            discord_user_id=self.discord_user_id,
-            game=self.game,
-            uid=self.uid,
-            raw_cookie=raw_cookie,
+        user_accounts = await AccountRepository.get_accounts_by_user(self.discord_user_id)
+        if not user_accounts:
+            await interaction.response.send_message("❌ Bạn chưa có tài khoản nào được liên kết.", ephemeral=True)
+            return
+
+        targets = []
+        for acc in user_accounts:
+            if self.target_scope == "all":
+                targets.append(acc)
+            elif self.target_scope == acc.game.value:
+                targets.append(acc)
+            elif self.uid and acc.uid == self.uid:
+                targets.append(acc)
+
+        if not targets:
+            targets = user_accounts
+
+        saved_names = []
+        for acc in targets:
+            await SessionRepository.save_session(
+                discord_user_id=self.discord_user_id,
+                game=acc.game,
+                uid=acc.uid,
+                raw_cookie=raw_cookie,
+            )
+            await AutomationSettingsRepository.get_or_create(acc.id, self.discord_user_id)
+            saved_names.append(f"{acc.game.emoji} **{acc.game.display_name}** (`{acc.uid}`)")
+
+        has_cookie_token = "cookie_token" in raw_cookie
+        redeem_note = (
+            "🎁 **Đổi Giftcode:** Đã phát hiện token đổi mã, sẵn sàng tự động nhận giftcode!"
+            if has_cookie_token
+            else "⚠️ **Lưu ý Giftcode:** Thiếu `cookie_token_v2`. Điểm danh hoạt động tốt, nhưng để tự động đổi Giftcode bạn cần thêm `cookie_token_v2` từ tab Cookies trong F12."
         )
 
-        # Đảm bảo có bản ghi automation_settings
-        await AutomationSettingsRepository.get_or_create(self.account_id, self.discord_user_id)
+        acc_list_str = "\n• " + "\n• ".join(saved_names)
 
         embed = discord.Embed(
             title="🔒 Đã Lưu Phiên Đăng Nhập Thành Công!",
             description=(
-                f"Tài khoản: **{self.game.display_name}** (UID: `{self.uid}`)\n"
-                f"Trạng thái: Cookie đã được **mã hóa bảo mật** trong cơ sở dữ liệu.\n\n"
-                f"Các tính năng Tự động Điểm danh và Đổi Giftcode cho tài khoản này đã sẵn sàng!"
+                f"Đã lưu và đồng bộ Cookie an toàn cho các tài khoản:{acc_list_str}\n\n"
+                f"📅 **Điểm danh hàng ngày:** Đã kích hoạt.\n"
+                f"{redeem_note}\n\n"
+                f"💡 *Gợi ý:* Bạn có thể gõ `/auto run tac_vu: Điểm danh ngay` để kiểm tra kết quả ngay lập tức."
             ),
             color=0x2ECC71,
         )
-        embed.set_footer(text="Hệ thống sẽ không bao giờ hiển thị Cookie thô ra bên ngoài.")
+        embed.set_footer(text="Hệ thống luôn mã hóa bảo mật toàn bộ dữ liệu Cookie.")
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
@@ -86,13 +121,9 @@ class AutomationDashboardView(View):
             await interaction.response.send_message("Bạn chưa có tài khoản nào. Hãy dùng `/account add` trước.", ephemeral=True)
             return
 
-        # Nếu có 1 account, mở modal trực tiếp; nếu nhiều account, chọn account đầu tiên
-        acc, _, _ = self.accounts_data[0]
         modal = CookieInputModal(
-            account_id=acc.id,
             discord_user_id=interaction.user.id,
-            game=acc.game,
-            uid=acc.uid,
+            target_scope="all",
         )
         await interaction.response.send_modal(modal)
 

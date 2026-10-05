@@ -66,7 +66,7 @@ class ProfileCommands(commands.GroupCog, group_name="profile"):
         else:
             # Chế độ embed văn bản thuần
             embed = discord.Embed(
-                title=f"🎮 Hồ Sơ {game.display_name}: {profile.nickname}",
+                title=f"{game.emoji} Hồ Sơ {game.display_name}: {profile.nickname}",
                 description=f"UID: `{mask_uid(profile.uid, show_uid)}`\nChữ ký: *{profile.signature or 'Chưa đặt'}*",
                 color=0x5BC0BE if game == GameType.GENSHIN else 0x9370DB,
             )

@@ -20,10 +20,23 @@ class GameType(str, Enum):
         return "Star Rail"
 
     @property
+    def emoji(self) -> str:
+        if self == GameType.GENSHIN:
+            return "<:genshin_icon:1556606822314672142>"
+        return "<:hsr_icon:1556606824491389010>"
+
+    @property
+    def discord_emoji(self):
+        import discord
+        if self == GameType.GENSHIN:
+            return discord.PartialEmoji(name="genshin_icon", id=1556606822314672142)
+        return discord.PartialEmoji(name="hsr_icon", id=1556606824491389010)
+
+    @property
     def icon_url(self) -> str:
         if self == GameType.GENSHIN:
-            return "https://enka.network/ui/UI_AvatarIcon_PlayerBoy.png"
-        return "https://enka.network/ui/hsr/avatar/1001.png"
+            return "https://enka.network/ui/UI_AvatarIcon_Paimon.png"
+        return "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/icon/avatar/1001.png"
 
 
 class ServerRegion(str, Enum):

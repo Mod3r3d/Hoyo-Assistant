@@ -13,7 +13,7 @@ class AccountSelectDropdown(Select):
                 label=acc.nickname or f"{acc.game.short_name} - {acc.uid}",
                 description=f"UID: {acc.uid} ({acc.server.value}){' • [Mặc định]' if acc.is_default else ''}",
                 value=str(acc.id),
-                emoji="🎮" if acc.game.value == "genshin" else "🚂",
+                emoji=acc.game.discord_emoji,
             )
             for acc in accounts[:25]
         ]

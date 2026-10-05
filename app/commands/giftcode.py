@@ -72,7 +72,7 @@ class GiftcodeCommands(commands.GroupCog, group_name="giftcode"):
             if curr_chunk:
                 chunks.append(curr_chunk)
 
-            game_icon = "🎮" if g == GameType.GENSHIN else "🚂"
+            game_icon = g.emoji
             for p_idx, chunk in enumerate(chunks):
                 part_label = f" (Phần {p_idx + 1})" if len(chunks) > 1 else ""
                 field_title = f"{game_icon} {g.display_name}{part_label} — {len(codes)} mã hoạt động"
@@ -154,7 +154,7 @@ class GiftcodeCommands(commands.GroupCog, group_name="giftcode"):
 
         for acc in accounts:
             redeems = await GiftCodeRepository.get_redemption_history(acc.id, limit=8)
-            header = f"{'🎮' if acc.game == GameType.GENSHIN else '🚂'} {acc.nickname or acc.uid} ({acc.game.display_name} - `{acc.uid}`)"
+            header = f"{acc.game.emoji} {acc.nickname or acc.uid} ({acc.game.display_name} - `{acc.uid}`)"
             if redeems:
                 lines = []
                 for r in redeems:

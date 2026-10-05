@@ -51,7 +51,7 @@ class GeneralCommands(commands.Cog):
             color=0x3498DB,
         )
         embed.add_field(
-            name="🎮 Hỗ Trợ 2 Tựa Game",
+            name=f"{GameType.GENSHIN.emoji} {GameType.HSR.emoji} Hỗ Trợ 2 Tựa Game",
             value="• **Genshin Impact**\n• **Honkai: Star Rail**",
             inline=True,
         )

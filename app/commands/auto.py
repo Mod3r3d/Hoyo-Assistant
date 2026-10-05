@@ -70,7 +70,7 @@ class AutoCommands(commands.GroupCog, group_name="auto"):
                 f"└─ Báo sự kiện Web: {mark(auto_set.event_notify_enabled)}\n"
             )
             embed.add_field(
-                name=f"{'🎮' if acc.game == GameType.GENSHIN else '🚂'} {acc.nickname or acc.uid} ({acc.game.display_name})",
+                name=f"{acc.game.emoji} {acc.nickname or acc.uid} ({acc.game.display_name})",
                 value=field_val,
                 inline=False,
             )
@@ -123,7 +123,19 @@ class AutoCommands(commands.GroupCog, group_name="auto"):
         )
 
     @app_commands.command(name="session_add", description="Mở cửa sổ thêm/cập nhật Cookie HoYoLAB an toàn")
-    async def auto_session_add(self, interaction: discord.Interaction):
+    @app_commands.describe(
+        ap_dung="Chọn phạm vi áp dụng Cookie (mặc định áp dụng chung cho tất cả tài khoản game)"
+    )
+    @app_commands.choices(
+        ap_dung=[
+            app_commands.Choice(name="🌟 Tất cả tài khoản game (Khuyên dùng)", value="all"),
+            app_commands.Choice(name="Genshin Impact", value="genshin"),
+            app_commands.Choice(name="Honkai: Star Rail", value="hsr"),
+        ]
+    )
+    async def auto_session_add(
+        self, interaction: discord.Interaction, ap_dung: Optional[app_commands.Choice[str]] = None
+    ):
         accounts = await AccountRepository.get_accounts_by_user(interaction.user.id)
         if not accounts:
             await interaction.response.send_message(
@@ -131,12 +143,10 @@ class AutoCommands(commands.GroupCog, group_name="auto"):
             )
             return
 
-        acc = accounts[0]
+        scope = ap_dung.value if ap_dung else "all"
         modal = CookieInputModal(
-            account_id=acc.id,
             discord_user_id=interaction.user.id,
-            game=acc.game,
-            uid=acc.uid,
+            target_scope=scope,
         )
         await interaction.response.send_modal(modal)
 
@@ -209,7 +219,7 @@ class AutoCommands(commands.GroupCog, group_name="auto"):
 
         for acc in accounts:
             lines = []
-            header = f"{'🎮' if acc.game == GameType.GENSHIN else '🚂'} {acc.nickname or acc.uid} ({acc.game.display_name} - `{acc.uid}`)"
+            header = f"{acc.game.emoji} {acc.nickname or acc.uid} ({acc.game.display_name} - `{acc.uid}`)"
 
             # 1. Lịch sử điểm danh
             if choice_val in ("all", "checkin"):
