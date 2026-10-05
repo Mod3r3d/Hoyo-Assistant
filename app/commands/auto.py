@@ -8,6 +8,8 @@ from app.automation.manager import automation_manager
 from app.db.repositories.accounts import AccountRepository
 from app.db.repositories.automation import (
     AutomationSettingsRepository,
+    CheckinRepository,
+    GiftCodeRepository,
     SessionRepository,
 )
 from app.games.enums import GameType
@@ -175,6 +177,68 @@ class AutoCommands(commands.GroupCog, group_name="auto"):
             f"⚡ **Kết quả thực thi {tac_vu.name}:**\n{result.get('message', 'Đã xử lý xong')}",
             ephemeral=True,
         )
+
+    @app_commands.command(name="history", description="Xem lịch sử tự động điểm danh và đổi giftcode của tài khoản")
+    @app_commands.describe(loai="Chọn loại lịch sử muốn xem")
+    @app_commands.choices(
+        loai=[
+            app_commands.Choice(name="Tất cả (Điểm danh & Giftcode)", value="all"),
+            app_commands.Choice(name="Lịch sử Điểm danh (Check-in)", value="checkin"),
+            app_commands.Choice(name="Lịch sử Đổi Giftcode (Redeem)", value="redeem"),
+        ]
+    )
+    async def auto_history(
+        self, interaction: discord.Interaction, loai: Optional[app_commands.Choice[str]] = None
+    ):
+        await interaction.response.defer(ephemeral=True)
+        accounts = await AccountRepository.get_accounts_by_user(interaction.user.id)
+        if not accounts:
+            await interaction.followup.send(
+                "❌ Bạn chưa có tài khoản nào được liên kết. Hãy dùng `/account add` trước.",
+                ephemeral=True,
+            )
+            return
+
+        choice_val = loai.value if loai else "all"
+
+        embed = discord.Embed(
+            title="📜 Lịch Sử Tự Động Hóa (Check-in & Redeem)",
+            description="Lịch sử các lần điểm danh và đổi mã quà tặng của tài khoản:",
+            color=0x3498DB,
+        )
+
+        for acc in accounts:
+            lines = []
+            header = f"{'🎮' if acc.game == GameType.GENSHIN else '🚂'} {acc.nickname or acc.uid} ({acc.game.display_name} - `{acc.uid}`)"
+
+            # 1. Lịch sử điểm danh
+            if choice_val in ("all", "checkin"):
+                checkins = await CheckinRepository.get_history(acc.id, limit=5)
+                if checkins:
+                    lines.append("**📅 Điểm danh gần nhất:**")
+                    for chk in checkins:
+                        status_icon = "✅" if chk.status in ("SUCCESS", "ALREADY_CHECKED") else "❌"
+                        r_hint = f" ({chk.reward_summary})" if chk.reward_summary else ""
+                        lines.append(f"  {status_icon} `{chk.run_date}`: {chk.status}{r_hint}")
+                else:
+                    lines.append("**📅 Điểm danh:** *Chưa có nhật ký điểm danh*")
+
+            # 2. Lịch sử đổi giftcode
+            if choice_val in ("all", "redeem"):
+                redeems = await GiftCodeRepository.get_redemption_history(acc.id, limit=5)
+                if redeems:
+                    lines.append("**🎁 Đổi Giftcode gần nhất:**")
+                    for r in redeems:
+                        status_icon = "✅" if r.status in ("SUCCESS", "ALREADY_REDEEMED") else "⚠️"
+                        time_str = r.redeemed_at.strftime("%d/%m") if r.redeemed_at else ""
+                        lines.append(f"  {status_icon} `{r.code}`: {r.status} {f'({time_str})' if time_str else ''}")
+                else:
+                    lines.append("**🎁 Giftcode:** *Chưa có lượt đổi mã nào*")
+
+            embed.add_field(name=header, value="\n".join(lines) if lines else "*Không có dữ liệu*", inline=False)
+
+        embed.set_footer(text="Dữ liệu được lưu trữ tự động an toàn trong hệ thống.")
+        await interaction.followup.send(embed=embed, ephemeral=True)
 
 
 async def setup(bot: commands.Bot):

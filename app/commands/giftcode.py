@@ -41,20 +41,46 @@ class GiftcodeCommands(commands.GroupCog, group_name="giftcode"):
 
         for g in games_to_query:
             codes = await GiftCodeRepository.get_active_codes(g)
-            if codes:
-                code_lines = []
-                for c in codes[:12]:
-                    badge = "✅" if getattr(c, "confidence", "MEDIUM") == "HIGH" else "🟢"
-                    reward_info = f" • *{c.rewards}*" if c.rewards else ""
-                    src_display = c.sources if c.sources else c.source
-                    code_lines.append(f"{badge} **`{c.code}`**{reward_info}\n   └─ Xác nhận: `{src_display}`")
+            if not codes:
+                embed.add_field(name=f"{g.display_name}", value="*Hiện chưa có mã mới*", inline=False)
+                continue
+
+            code_lines = []
+            for c in codes:
+                badge = "✅" if getattr(c, "confidence", "MEDIUM") == "HIGH" else "🟢"
+                rewards = c.rewards
+                if rewards and len(rewards) > 42:
+                    rewards = rewards[:39] + "..."
+                reward_info = f" • *{rewards}*" if rewards else ""
+                src_display = c.sources if c.sources else c.source
+                code_lines.append(f"{badge} **`{c.code}`**{reward_info}\n   └─ Xác nhận: `{src_display}`")
+
+            # Chia nhỏ code_lines thành từng field không vượt quá 900 ký tự
+            chunks = []
+            curr_chunk = []
+            curr_len = 0
+            for line in code_lines:
+                line_len = len(line) + 1
+                if curr_len + line_len > 900:
+                    if curr_chunk:
+                        chunks.append(curr_chunk)
+                    curr_chunk = [line]
+                    curr_len = line_len
+                else:
+                    curr_chunk.append(line)
+                    curr_len += line_len
+            if curr_chunk:
+                chunks.append(curr_chunk)
+
+            game_icon = "🎮" if g == GameType.GENSHIN else "🚂"
+            for p_idx, chunk in enumerate(chunks):
+                part_label = f" (Phần {p_idx + 1})" if len(chunks) > 1 else ""
+                field_title = f"{game_icon} {g.display_name}{part_label} — {len(codes)} mã hoạt động"
                 embed.add_field(
-                    name=f"{'🎮' if g == GameType.GENSHIN else '🚂'} {g.display_name} ({len(codes)} mã hoạt động)",
-                    value="\n".join(code_lines),
+                    name=field_title,
+                    value="\n".join(chunk),
                     inline=False,
                 )
-            else:
-                embed.add_field(name=f"{g.display_name}", value="*Hiện chưa có mã mới*", inline=False)
 
         embed.set_footer(text="✅: Đã xác thực qua nhiều nguồn | Bot tự động đổi mã cho tài khoản bật Auto Redeem")
         await interaction.followup.send(embed=embed)
@@ -107,6 +133,39 @@ class GiftcodeCommands(commands.GroupCog, group_name="giftcode"):
             ),
             color=0x2ECC71 if status == "SUCCESS" else 0xE74C3C,
         )
+        await interaction.followup.send(embed=embed, ephemeral=True)
+
+    @app_commands.command(name="history", description="Xem lịch sử đổi giftcode của tài khoản bạn")
+    async def giftcode_history(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        accounts = await AccountRepository.get_accounts_by_user(interaction.user.id)
+        if not accounts:
+            await interaction.followup.send(
+                "❌ Bạn chưa có tài khoản nào được liên kết. Hãy dùng `/account add` trước.",
+                ephemeral=True,
+            )
+            return
+
+        embed = discord.Embed(
+            title="🎁 Lịch Sử Đổi Mã Giftcode",
+            description="Các mã giftcode đã được đổi cho tài khoản của bạn:",
+            color=0xF39C12,
+        )
+
+        for acc in accounts:
+            redeems = await GiftCodeRepository.get_redemption_history(acc.id, limit=8)
+            header = f"{'🎮' if acc.game == GameType.GENSHIN else '🚂'} {acc.nickname or acc.uid} ({acc.game.display_name} - `{acc.uid}`)"
+            if redeems:
+                lines = []
+                for r in redeems:
+                    status_icon = "✅" if r.status in ("SUCCESS", "ALREADY_REDEEMED") else "⚠️"
+                    date_str = r.redeemed_at.strftime("%d/%m %H:%M") if r.redeemed_at else ""
+                    lines.append(f"{status_icon} **`{r.code}`** — {r.status} {f'({date_str})' if date_str else ''}")
+                embed.add_field(name=header, value="\n".join(lines), inline=False)
+            else:
+                embed.add_field(name=header, value="*Chưa có lượt đổi mã nào ghi nhận*", inline=False)
+
+        embed.set_footer(text="Hệ thống lưu vết để đảm bảo không bị đổi trùng lặp mã.")
         await interaction.followup.send(embed=embed, ephemeral=True)
 
 

@@ -277,6 +277,32 @@ class CheckinRepository:
             executed_at=row["executed_at"],
         )
 
+    @staticmethod
+    async def get_history(account_id: int, limit: int = 7) -> List[CheckinExecutionModel]:
+        cursor = await db.conn.execute(
+            """
+            SELECT * FROM checkin_executions
+            WHERE account_id = ?
+            ORDER BY run_date DESC, id DESC
+            LIMIT ?
+            """,
+            (account_id, limit),
+        )
+        rows = await cursor.fetchall()
+        return [
+            CheckinExecutionModel(
+                id=r["id"],
+                account_id=r["account_id"],
+                game=GameType(r["game"]),
+                run_date=r["run_date"],
+                status=r["status"],
+                reward_summary=r["reward_summary"],
+                error_code=r["error_code"],
+                executed_at=r["executed_at"],
+            )
+            for r in rows
+        ]
+
 
 class GiftCodeRepository:
     @staticmethod
@@ -408,6 +434,32 @@ class GiftCodeRepository:
             (account_id, gift_code_id, game.value, code, status, response_msg),
         )
         await db.conn.commit()
+
+    @staticmethod
+    async def get_redemption_history(account_id: int, limit: int = 10) -> List[GiftcodeRedemptionModel]:
+        cursor = await db.conn.execute(
+            """
+            SELECT * FROM giftcode_redemptions
+            WHERE account_id = ?
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (account_id, limit),
+        )
+        rows = await cursor.fetchall()
+        return [
+            GiftcodeRedemptionModel(
+                id=r["id"],
+                account_id=r["account_id"],
+                gift_code_id=r["gift_code_id"],
+                game=GameType(r["game"]),
+                code=r["code"],
+                status=r["status"],
+                response_msg=r["response_msg"],
+                redeemed_at=r["redeemed_at"],
+            )
+            for r in rows
+        ]
 
 
 class WebEventRepository:
