@@ -1,0 +1,12 @@
+discord.py>=2.3.2
+aiohttp>=3.9.3
+aiosqlite>=0.20.0
+pydantic>=2.6.0
+pydantic-settings>=2.2.0
+python-dotenv>=1.0.1
+Pillow>=10.2.0
+loguru>=0.7.2
+orjson>=3.9.15
+tabulate>=0.9.0
+apscheduler>=3.10.4
+cryptography>=42.0.0

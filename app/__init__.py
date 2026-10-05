@@ -1,0 +1,1 @@
+"""HoyoBot package."""
