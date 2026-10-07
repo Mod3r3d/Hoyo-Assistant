@@ -85,14 +85,14 @@ class AccountCommands(commands.GroupCog, group_name="account"):
         if genshin_accs:
             lines = []
             for a in genshin_accs:
-                tag = " 🌟 *(Mặc định)*" if a.is_default else ""
+                tag = " ✦ *(Mặc định)*" if a.is_default else ""
                 lines.append(f"• **{a.nickname or 'Không tên'}** — UID: `{a.uid}` ({a.server.value}){tag} `[ID: {a.id}]`")
             embed.add_field(name=f"{GameType.GENSHIN.emoji} Genshin Impact", value="\n".join(lines), inline=False)
 
         if hsr_accs:
             lines = []
             for a in hsr_accs:
-                tag = " 🌟 *(Mặc định)*" if a.is_default else ""
+                tag = " ✦ *(Mặc định)*" if a.is_default else ""
                 lines.append(f"• **{a.nickname or 'Không tên'}** — UID: `{a.uid}` ({a.server.value}){tag} `[ID: {a.id}]`")
             embed.add_field(name=f"{GameType.HSR.emoji} Honkai: Star Rail", value="\n".join(lines), inline=False)
 

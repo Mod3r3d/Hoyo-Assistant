@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from typing import List, Optional, Tuple
+from loguru import logger
 from app.db.database import db
 from app.db.models.account import AccountModel
 from app.db.models.automation import (
@@ -21,9 +22,29 @@ from app.security.encryption import cipher
 class SessionRepository:
     @staticmethod
     async def save_session(discord_user_id: int, game: GameType, uid: int, raw_cookie: str) -> SessionModel:
-        """Lưu hoặc cập nhật session cookie đã mã hóa."""
+        """Lưu hoặc cập nhật session cookie đã mã hóa, tự động gộp cookie mới với cookie cũ nếu có."""
         conn = db.conn
-        encrypted = cipher.encrypt(raw_cookie.strip())
+
+        final_cookie = raw_cookie.strip()
+        # Nếu đã có session trước đó, gộp cookie để không làm mất token điểm danh (ltoken) hoặc token đổi mã (cookie_token)
+        existing_sess = await SessionRepository.get_session(discord_user_id, game, uid)
+        if existing_sess:
+            try:
+                old_cookie = await SessionRepository.get_decrypted_cookie(existing_sess)
+                merged = {}
+                for p in old_cookie.split(";"):
+                    if "=" in p:
+                        k, v = p.split("=", 1)
+                        merged[k.strip()] = v.strip()
+                for p in final_cookie.split(";"):
+                    if "=" in p:
+                        k, v = p.split("=", 1)
+                        merged[k.strip()] = v.strip()
+                final_cookie = "; ".join(f"{k}={v}" for k, v in merged.items())
+            except Exception as e:
+                logger.warning(f"Lỗi khi gộp cookie: {e}")
+
+        encrypted = cipher.encrypt(final_cookie)
 
         cursor = await conn.execute(
             """

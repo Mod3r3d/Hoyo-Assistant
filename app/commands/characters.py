@@ -75,7 +75,7 @@ class CharacterCommands(commands.GroupCog, group_name="characters"):
             # Chỉ số nổi bật
             stats = getattr(char, "stats", {})
             if stats:
-                stat_str = "\n".join([f"• **{k}**: {v}" for k, v in list(stats.items())[:6]])
+                stat_str = "\n".join([f"• **{k}**: {v}" for k, v in list(stats.items())[:10]])
                 embed.add_field(name="📊 Chỉ Số Chiến Đấu", value=stat_str, inline=True)
 
             embeds.append(embed)

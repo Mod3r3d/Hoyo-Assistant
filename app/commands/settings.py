@@ -43,7 +43,7 @@ class GeneralCommands(commands.Cog):
     @app_commands.command(name="about", description="Thông tin giới thiệu về HoyoBot")
     async def about_cmd(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title="✨ Giới Thiệu HoyoBot",
+            title="✦ Giới Thiệu HoyoBot",
             description=(
                 "**HoyoBot** là trợ thủ Discord chuyên biệt dành cho cộng đồng người chơi **Genshin Impact** và **Honkai: Star Rail**.\n\n"
                 "Được thiết kế tinh gọn, hiện đại và tập trung tối đa vào tốc độ và trải nghiệm người dùng tiếng Việt."
@@ -56,7 +56,7 @@ class GeneralCommands(commands.Cog):
             inline=True,
         )
         embed.add_field(
-            name="🌟 Tính Năng Nổi Bật",
+            name="✦ Tính Năng Nổi Bật",
             value="• Quản lý nhiều tài khoản UID\n• Tra cứu hồ sơ & tủ nhân vật\n• Đồ họa thẻ Profile/Character Card\n• Hướng dẫn build vũ khí/di vật\n• Tra cứu sự kiện & bách khoa",
             inline=True,
         )
@@ -66,12 +66,12 @@ class GeneralCommands(commands.Cog):
     @app_commands.command(name="help", description="Xem hướng dẫn sử dụng các lệnh của HoyoBot")
     async def help_cmd(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title="📖 Danh Sách Lệnh HoyoBot",
+            title="✦ Danh Sách Lệnh HoyoBot",
             description="Tất cả các lệnh đều sử dụng hệ thống Slash Command (`/`):",
             color=0x3498DB,
         )
         embed.add_field(
-            name="👤 Quản Lý Tài Khoản (`/account`)",
+            name="◈ Quản Lý Tài Khoản (`/account`)",
             value=(
                 "`/account add` — Liên kết UID Genshin hoặc Star Rail\n"
                 "`/account list` — Xem danh sách tài khoản đã liên kết\n"
@@ -81,7 +81,7 @@ class GeneralCommands(commands.Cog):
             inline=False,
         )
         embed.add_field(
-            name="📊 Tra Cứu Hồ Sơ (`/profile`)",
+            name="◈ Tra Cứu Hồ Sơ (`/profile`)",
             value=(
                 "`/profile genshin [uid] [user]` — Xem hồ sơ & card Genshin\n"
                 "`/profile hsr [uid] [user]` — Xem hồ sơ & card Star Rail"
@@ -89,7 +89,7 @@ class GeneralCommands(commands.Cog):
             inline=False,
         )
         embed.add_field(
-            name="⚔️ Tủ Trưng Bày Nhân Vật (`/characters`)",
+            name="◈ Tủ Trưng Bày Nhân Vật (`/characters`)",
             value=(
                 "`/characters genshin [uid] [user]` — Chi tiết nhân vật Genshin\n"
                 "`/characters hsr [uid] [user]` — Chi tiết nhân vật Star Rail"
@@ -97,7 +97,7 @@ class GeneralCommands(commands.Cog):
             inline=False,
         )
         embed.add_field(
-            name="📚 Hướng Dẫn Build (`/build`)",
+            name="◈ Hướng Dẫn Build (`/build`)",
             value=(
                 "`/build genshin <nhân vật>` — Gợi ý vũ khí, TDV, chỉ số Genshin\n"
                 "`/build hsr <nhân vật>` — Gợi ý nón ánh sáng, di vật Star Rail"
@@ -105,11 +105,12 @@ class GeneralCommands(commands.Cog):
             inline=False,
         )
         embed.add_field(
-            name="🤖 Tự Động Hóa",
+            name="◈ Tự Động Hóa (`/auto`)",
             value=(
                 "`/auto status` — Bảng điều khiển trung tâm tự động hóa\n"
                 "`/auto toggle` — Bật/tắt điểm danh, đổi code, mimo, sự kiện\n"
                 "`/auto session_add` — Nhập Cookie HoYoLAB an toàn (mã hóa)\n"
+                "`/auto session_view` — Xem chi tiết các Token & Cookie hiện tại\n"
                 "`/auto run <tác vụ>` — Kích hoạt thủ công chạy tác vụ ngay\n"
                 "`/checkin now` & `/checkin status` — Điểm danh tức thì\n"
                 "`/giftcode list` & `/giftcode redeem` — Tra cứu & đổi Giftcode\n"
@@ -118,7 +119,7 @@ class GeneralCommands(commands.Cog):
             inline=False,
         )
         embed.add_field(
-            name="🔍 Bách Khoa & Tiện Ích",
+            name="◈ Bách Khoa & Tiện Ích",
             value=(
                 "`/search genshin <từ khóa>` — Tìm kiếm dữ liệu Genshin\n"
                 "`/search hsr <từ khóa>` — Tìm kiếm dữ liệu Star Rail\n"

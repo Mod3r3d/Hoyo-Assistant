@@ -36,6 +36,8 @@ LIGHT_CONES = _load_hsr_data("light_cones.json")
 RELIC_SETS = _load_hsr_data("relic_sets.json")
 PROPERTIES = _load_hsr_data("properties.json")
 CHARACTER_PROMOTIONS = _load_hsr_data("character_promotions.json")
+SKILL_TREES = _load_hsr_data("character_skill_trees.json")
+LIGHT_CONE_RANKS = _load_hsr_data("light_cone_ranks.json")
 
 
 class StarRailProvider(GameProvider):
@@ -211,30 +213,69 @@ class StarRailProvider(GameProvider):
             heal_delta = 0.0
             dmg_boosts: Dict[str, float] = {}
 
+            def apply_prop(ptype: str, pval: float):
+                nonlocal hp_delta, hp_ratio, atk_delta, atk_ratio, def_delta, def_ratio
+                nonlocal spd_delta, cr_delta, cd_delta, break_delta, effect_res_delta, effect_hit_delta, sp_delta, heal_delta
+                if ptype == "HPDelta": hp_delta += pval
+                elif ptype == "HPAddedRatio": hp_ratio += pval
+                elif ptype == "AttackDelta": atk_delta += pval
+                elif ptype == "AttackAddedRatio": atk_ratio += pval
+                elif ptype == "DefenceDelta": def_delta += pval
+                elif ptype == "DefenceAddedRatio": def_ratio += pval
+                elif ptype == "SpeedDelta": spd_delta += pval
+                elif ptype in ["CriticalChance", "CriticalChanceBase"]: cr_delta += pval
+                elif ptype in ["CriticalDamage", "CriticalDamageBase"]: cd_delta += pval
+                elif ptype in ["BreakDamageAddedRatio", "BreakDamageAddedRatioBase"]: break_delta += pval
+                elif ptype in ["StatusResistance", "StatusResistanceBase"]: effect_res_delta += pval
+                elif ptype in ["StatusProbability", "StatusProbabilityBase"]: effect_hit_delta += pval
+                elif ptype in ["SPRatio", "SPRatioBase"]: sp_delta += pval
+                elif ptype in ["HealRatio", "HealRatioBase"]: heal_delta += pval
+                elif "AddedRatio" in ptype and ptype not in [
+                    "HPAddedRatio", "AttackAddedRatio", "DefenceAddedRatio",
+                    "SpeedAddedRatio", "BreakDamageAddedRatio", "ElationDamageAddedRatio"
+                ]:
+                    prop_name = PROPERTIES.get(ptype, {}).get("name", "Tăng Sát Thương")
+                    dmg_boosts[prop_name] = dmg_boosts.get(prop_name, 0.0) + pval
+
+            # 1. Chỉ số từ Thánh Di Vật & Phụ Kiện Vị Diện
+            relic_sets_count: Dict[str, int] = {}
             for r in raw_char.get("relicList", []):
+                set_id = str(r.get("_flat", {}).get("setID", ""))
+                if set_id:
+                    relic_sets_count[set_id] = relic_sets_count.get(set_id, 0) + 1
                 for p in r.get("_flat", {}).get("props", []):
-                    ptype = p.get("type", "")
-                    pval = p.get("value", 0)
-                    if ptype == "HPDelta": hp_delta += pval
-                    elif ptype == "HPAddedRatio": hp_ratio += pval
-                    elif ptype == "AttackDelta": atk_delta += pval
-                    elif ptype == "AttackAddedRatio": atk_ratio += pval
-                    elif ptype == "DefenceDelta": def_delta += pval
-                    elif ptype == "DefenceAddedRatio": def_ratio += pval
-                    elif ptype == "SpeedDelta": spd_delta += pval
-                    elif ptype in ["CriticalChance", "CriticalChanceBase"]: cr_delta += pval
-                    elif ptype in ["CriticalDamage", "CriticalDamageBase"]: cd_delta += pval
-                    elif ptype in ["BreakDamageAddedRatio", "BreakDamageAddedRatioBase"]: break_delta += pval
-                    elif ptype in ["StatusResistance", "StatusResistanceBase"]: effect_res_delta += pval
-                    elif ptype in ["StatusProbability", "StatusProbabilityBase"]: effect_hit_delta += pval
-                    elif ptype in ["SPRatio", "SPRatioBase"]: sp_delta += pval
-                    elif ptype in ["HealRatio", "HealRatioBase"]: heal_delta += pval
-                    elif "AddedRatio" in ptype and ptype not in [
-                        "HPAddedRatio", "AttackAddedRatio", "DefenceAddedRatio",
-                        "SpeedAddedRatio", "BreakDamageAddedRatio", "ElationDamageAddedRatio"
-                    ]:
-                        prop_name = PROPERTIES.get(ptype, {}).get("name", "Tăng Sát Thương")
-                        dmg_boosts[prop_name] = dmg_boosts.get(prop_name, 0.0) + pval
+                    apply_prop(p.get("type", ""), p.get("value", 0))
+
+            # 2. Hiệu ứng kích hoạt bộ Di Vật (2 món & 4 món)
+            for set_id, cnt in relic_sets_count.items():
+                s_data = RELIC_SETS.get(set_id, {})
+                props_list = s_data.get("properties", [])
+                if cnt >= 2 and len(props_list) >= 1:
+                    for p in props_list[0]:
+                        apply_prop(p.get("type", ""), p.get("value", 0))
+                if cnt >= 4 and len(props_list) >= 2:
+                    for p in props_list[1]:
+                        apply_prop(p.get("type", ""), p.get("value", 0))
+
+            # 3. Chỉ số Vết Tích (skillTreeList)
+            for st in raw_char.get("skillTreeList", []):
+                pid = str(st.get("pointId", ""))
+                lvl = st.get("level", 0)
+                if lvl > 0 and pid in SKILL_TREES:
+                    node_levels = SKILL_TREES[pid].get("levels", [])
+                    if lvl <= len(node_levels):
+                        for p in node_levels[lvl - 1].get("properties", []):
+                            apply_prop(p.get("type", ""), p.get("value", 0))
+
+            # 4. Hiệu ứng Nội Tại Nón Ánh Sáng (Light Cone Rank Passives)
+            if equipment:
+                lc_id = str(equipment.get("tid", ""))
+                lc_rank = equipment.get("rank", 1)
+                if lc_id in LIGHT_CONE_RANKS:
+                    lc_props_list = LIGHT_CONE_RANKS[lc_id].get("properties", [])
+                    if lc_rank <= len(lc_props_list):
+                        for p in lc_props_list[lc_rank - 1]:
+                            apply_prop(p.get("type", ""), p.get("value", 0))
 
             final_hp = int(base_hp * (1 + hp_ratio) + hp_delta)
             final_atk = int(base_atk * (1 + atk_ratio) + atk_delta)
@@ -252,7 +293,7 @@ class StarRailProvider(GameProvider):
                 "ST Bạo Kích": f"{final_cd:.1f}%",
             }
 
-            # Bổ sung các chỉ số thứ cấp (nếu có giá trị > 0)
+            # Bổ sung các chỉ số thứ cấp (Tăng Sát Thương, Kích Phá, Hiệu Ứng, Hồi Năng Lượng)
             for dname, dval in dmg_boosts.items():
                 if dval > 0.0001:
                     stats_dict[dname] = f"{dval * 100:.1f}%"
@@ -262,8 +303,10 @@ class StarRailProvider(GameProvider):
                 stats_dict["Kháng Hiệu Ứng"] = f"{effect_res_delta * 100:.1f}%"
             if effect_hit_delta > 0.0001:
                 stats_dict["Chính Xác Hiệu Ứng"] = f"{effect_hit_delta * 100:.1f}%"
-            if sp_delta > 0.0001:
-                stats_dict["Hồi Năng Lượng"] = f"{(1.0 + sp_delta) * 100:.1f}%"
+            
+            # Luôn hiển thị Hiệu Suất Hồi Năng Lượng (Mặc định 100.0%)
+            stats_dict["Hồi Năng Lượng"] = f"{(1.0 + sp_delta) * 100:.1f}%"
+
             if heal_delta > 0.0001:
                 stats_dict["Tăng Trị Liệu"] = f"{heal_delta * 100:.1f}%"
 

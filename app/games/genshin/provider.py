@@ -159,6 +159,32 @@ class GenshinProvider(GameProvider):
             er = get_prop(23) * 100
             stats_dict["Hiệu Quả Nạp NT"] = format_stat_value(er, is_percent=True)
 
+            # Tăng Sát Thương Nguyên Tố & Vật Lý (Nếu có giá trị > 0)
+            elemental_props = [
+                (40, "Tăng ST Hỏa"),
+                (41, "Tăng ST Lôi"),
+                (42, "Tăng ST Thủy"),
+                (43, "Tăng ST Thảo"),
+                (44, "Tăng ST Phong"),
+                (45, "Tăng ST Nham"),
+                (46, "Tăng ST Băng"),
+                (30, "Tăng ST Vật Lý"),
+            ]
+            for prop_id, prop_name in elemental_props:
+                val = get_prop(prop_id) * 100
+                if val > 0.05:
+                    stats_dict[prop_name] = format_stat_value(val, is_percent=True)
+
+            # Tăng Trị Liệu (Nếu có)
+            heal_bonus = get_prop(26) * 100
+            if heal_bonus > 0.05:
+                stats_dict["Tăng Trị Liệu"] = format_stat_value(heal_bonus, is_percent=True)
+
+            # Hiệu Quả Khiên (Nếu có)
+            shield_bonus = get_prop(81) * 100
+            if shield_bonus > 0.05:
+                stats_dict["Hiệu Quả Khiên"] = format_stat_value(shield_bonus, is_percent=True)
+
             # Trang bị (Vũ khí & Thánh Di Vật)
             weapon: Optional[GenshinWeapon] = None
             artifacts: List[GenshinArtifact] = []

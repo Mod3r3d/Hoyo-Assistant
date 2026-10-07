@@ -84,7 +84,7 @@ class AdminCommands(commands.GroupCog, group_name="admin"):
         res = await automation_manager.run_manually(tac_vu.value)
 
         embed = discord.Embed(
-            title=f"⚡ Quản Trị: Kích Hoạt Tác Vụ {tac_vu.name}",
+            title=f"✦ Quản Trị: Kích Hoạt Tác Vụ {tac_vu.name}",
             description=f"Kết quả:\n```json\n{res}\n```",
             color=0x3498DB,
         )

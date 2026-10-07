@@ -1,11 +1,11 @@
-# HoyoBot — Discord Bot cho Genshin Impact & Honkai: Star Rail 🌟
+# HoyoBot — Discord Bot cho Genshin Impact & Honkai: Star Rail ✦
 *(Tích hợp Lớp Tự Động Hóa Chạy Nền)*
 
 **HoyoBot** là một Discord Bot bằng Python chuyên biệt dành cho hai tựa game nổi tiếng của HoYoverse: **Genshin Impact** và **Honkai: Star Rail**. Bot được xây dựng với kiến trúc phân tầng hiện đại, giao diện hoàn toàn bằng **Tiếng Việt**, ưu tiên tốc độ phản hồi, đồ họa thẻ ảnh (Card) sang trọng và **lớp tự động hóa chạy nền (Automation Layer)** bảo mật cao.
 
 ---
 
-## 🎯 Phạm Vi & Triết Lý Thiết Kế
+## ◈ Phạm Vi & Triết Lý Thiết Kế
 
 - **Chỉ 2 Tựa Game**: Tập trung sâu vào **Genshin Impact** và **Honkai: Star Rail**. Hoàn toàn không chứa mã nguồn thừa của ZZZ, Honkai Impact 3rd hay Tears of Themis.
 - **Tiếng Việt 100%**: Tất cả các lệnh Slash, mô tả, thông báo lỗi, hướng dẫn build, nhật ký và giao diện UI đều được bản địa hóa tiếng Việt trực quan, thân thiện.
@@ -17,65 +17,66 @@
 
 ---
 
-## ⚡ Các Nhóm Lệnh Chính
+## ✦ Các Nhóm Lệnh Chính
 
-### 1. 🤖 Tự Động Hóa Chạy Nền (`/auto`)
+### 1. ◈ Tự Động Hóa Chạy Nền (`/auto`)
 - `/auto status`: Mở bảng điều khiển tương tác hiển thị trạng thái tất cả các tính năng tự động (Điểm danh, Giftcode, Mimo, Đồng Hành, Sự kiện) kèm nút bấm thao tác nhanh.
 - `/auto toggle <tính_năng> <trạng_thái>`: Bật hoặc tắt từng tính năng tự động cho tài khoản của bạn.
 - `/auto session_add`: Mở cửa sổ Modal nhập Cookie HoYoLAB an toàn để kích hoạt tự động hóa.
+- `/auto session_view [hien_thi_day_du]`: Xem chi tiết các Token xác thực và chuỗi Cookie HoYoLAB hiện tại của bạn.
 - `/auto session_remove`: Xóa bỏ phiên đăng nhập Cookie khỏi hệ thống.
 - `/auto run <tác_vụ>`: Kích hoạt thủ công chạy ngay một tác vụ tự động (Checkin, Giftcode, Mimo, v.v.).
 
-### 2. 📅 Điểm Danh HoYoLAB (`/checkin`)
+### 2. ◈ Điểm Danh HoYoLAB (`/checkin`)
 - `/checkin now`: Điểm danh ngay lập tức cho các tài khoản game của bạn mà không cần đợi lịch nửa đêm.
 - `/checkin status`: Kiểm tra trạng thái điểm danh hôm nay của bạn (Đã nhận hoặc đang chờ).
 
-### 3. 🎁 Mã Quà Tặng Giftcode (`/giftcode`)
+### 3. ◈ Mã Quà Tặng Giftcode (`/giftcode`)
 - `/giftcode list [game]`: Xem danh sách toàn bộ giftcode đang hoạt động phát hiện bởi bot.
 - `/giftcode redeem <code> [game]`: Đổi thủ công một mã quà tặng cho tài khoản của bạn.
 
-### 4. 🔔 Thông Báo Tự Động (`/notify`)
+### 4. ◈ Thông Báo Tự Động (`/notify`)
 - `/notify status`: Xem cấu hình kênh và mức độ nhận thông báo hiện tại.
 - `/notify set <chế_độ>`: Chọn mức độ thông báo (*Chỉ báo lỗi*, *Báo tất cả*, hoặc *Tắt*).
 - `/notify channel [kênh]`: Thiết lập gửi thông báo vào một kênh máy chủ cụ thể hoặc gửi qua tin nhắn riêng (DM).
 
-### 5. 👤 Quản Lý Tài Khoản (`/account`)
+### 5. ◈ Quản Lý Tài Khoản (`/account`)
 - `/account add <game> <uid> [nickname]`: Liên kết UID Genshin hoặc Star Rail vào tài khoản Discord của bạn. Tự động nhận diện Server (*Asia, America, Europe, TW/HK/MO*).
 - `/account list`: Xem danh sách tất cả các UID bạn đã liên kết kèm nhãn mặc định.
 - `/account default`: Mở menu tương tác chọn tài khoản mặc định cho từng game.
 - `/account remove`: Mở menu chọn và xác nhận xóa tài khoản đã lưu.
 
-### 6. 📊 Hồ Sơ Người Chơi (`/profile`)
+### 6. ◈ Hồ Sơ Người Chơi (`/profile`)
 - `/profile genshin [uid] [user]`: Xem thẻ hồ sơ người chơi Genshin (Hạng Mạo Hiểm AR, Cấp Thế Giới, Thành Tựu, Tủ trưng bày nhân vật kèm Cung Mệnh).
 - `/profile hsr [uid] [user]`: Xem thẻ hồ sơ người chơi Star Rail (Cấp Khai Phá, Cấp Cân Bằng, Tinh Hồn nhân vật).
 - **Tương tác động**: Chọn trực tiếp nhân vật trong tủ từ Menu thả xuống để xem thẻ trang bị chi tiết ngay lập tức!
 
-### 7. ⚔️ Tủ Trưng Bày Nhân Vật (`/characters`)
+### 7. ◈ Tủ Trưng Bày Nhân Vật (`/characters`)
 - `/characters genshin [uid] [user]`: Xem toàn bộ danh sách nhân vật trong tủ trưng bày với giao diện phân trang (Paginator).
 - `/characters hsr [uid] [user]`: Xem danh sách nhân vật showcase trong Honkai: Star Rail.
 
-### 8. 📖 Hướng Dẫn Xây Dựng Nhân Vật (`/build`)
+### 8. ◈ Hướng Dẫn Xây Dựng Nhân Vật (`/build`)
 - `/build genshin <nhân vật>` (Hỗ trợ **Autocomplete** tự gợi ý tên): Hướng dẫn vũ khí (Trấn, F2P), Bộ Thánh Di Vật, Chỉ số chính từng mảnh, Thứ tự dòng phụ, Ưu tiên nâng Thiên phú, Đội hình tiêu biểu và lưu ý chiến đấu.
 - `/build hsr <nhân vật>` (Hỗ trợ **Autocomplete**): Hướng dẫn Nón Ánh Sáng, Bộ Di Vật & Phụ Kiện Vị Diện, Chỉ số chính, Vết Tích, Đội hình chiến thuật.
 
-### 9. 🔍 Bách Khoa Tra Cứu (`/search`)
+### 9. ◈ Bách Khoa Tra Cứu (`/search`)
 - `/search genshin <từ khóa>`: Tra cứu nhanh thông tin nhân vật, nguyên tố, độ hiếm trong Genshin Impact.
 - `/search hsr <từ khóa>`: Tra cứu thông tin nhân vật, vận mệnh, thuộc tính trong Honkai: Star Rail.
 
-### 10. 📅 Sự Kiện Game (`/events`)
+### 10. ◈ Sự Kiện Game (`/events`)
 - `/events genshin`: Theo dõi các sự kiện phiên bản và banner cầu nguyện đang mở trong Genshin Impact.
 - `/events hsr`: Theo dõi sự kiện Khai Phá và banner bước nhảy trong Honkai: Star Rail.
 
-### 11. ⚙️ Cài Đặt Cá Nhân (`/settings`)
+### 11. ◈ Cài Đặt Cá Nhân (`/settings`)
 - `/settings`: Mở bảng cài đặt cá nhân tương tác (Bật/tắt ẩn UID bảo mật `812***678`, Bật/tắt ưu tiên ảnh Card đồ họa Pillow, Bật/tắt chế độ phản hồi riêng tư Ephemeral).
 
-### 12. 🛠️ Quản Trị Hệ Thống (`/admin`)
+### 12. ◈ Quản Trị Hệ Thống (`/admin`)
 - `/admin auto_status`: Xem trạng thái lập lịch nền (Scheduler), danh sách Job, thời gian chạy kế tiếp và nhật ký lỗi.
 - `/admin auto_run <tác_vụ>`: Kích hoạt cưỡng bức một tác vụ nền bất kỳ.
 
 ---
 
-## 🏗️ Cấu Trúc Thư Mục
+## ◈ Cấu Trúc Thư Mục
 
 ```text
 hoyoBot/
@@ -118,7 +119,7 @@ hoyoBot/
 
 ---
 
-## 🚀 Hướng Dẫn Cài Đặt & Khởi Chạy
+## ✦ Hướng Dẫn Cài Đặt & Khởi Chạy
 
 ### 1. Yêu Cầu Môi Trường
 - Python 3.12 trở lên.

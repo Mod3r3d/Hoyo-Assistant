@@ -13,7 +13,7 @@ from app.db.repositories.automation import (
     SessionRepository,
 )
 from app.games.enums import GameType
-from app.ui.automation.views import AutomationDashboardView, CookieInputModal
+from app.ui.automation.views import AutomationDashboardView, CookieInputModal, build_cookie_view_embed
 
 
 class AutoCommands(commands.GroupCog, group_name="auto"):
@@ -36,7 +36,7 @@ class AutoCommands(commands.GroupCog, group_name="auto"):
 
         accounts_data = []
         embed = discord.Embed(
-            title="🤖 Bảng Điều Khiển Tự Động Hóa",
+            title="✦ Bảng Điều Khiển Tự Động Hóa",
             description="Trạng thái cấu hình chạy nền cho các tài khoản game của bạn:",
             color=0x3498DB,
         )
@@ -128,7 +128,7 @@ class AutoCommands(commands.GroupCog, group_name="auto"):
     )
     @app_commands.choices(
         ap_dung=[
-            app_commands.Choice(name="🌟 Tất cả tài khoản game (Khuyên dùng)", value="all"),
+            app_commands.Choice(name="✦ Tất cả tài khoản game (Khuyên dùng)", value="all"),
             app_commands.Choice(name="Genshin Impact", value="genshin"),
             app_commands.Choice(name="Honkai: Star Rail", value="hsr"),
         ]
@@ -149,6 +149,17 @@ class AutoCommands(commands.GroupCog, group_name="auto"):
             target_scope=scope,
         )
         await interaction.response.send_modal(modal)
+
+    @app_commands.command(name="session_view", description="Xem thông tin chi tiết và các token trong Cookie hiện tại")
+    @app_commands.describe(
+        hien_thi_day_du="Hiện đầy đủ chuỗi Cookie không che (Mặc định: Tắt để bảo vệ an toàn)"
+    )
+    async def auto_session_view(
+        self, interaction: discord.Interaction, hien_thi_day_du: bool = False
+    ):
+        await interaction.response.defer(ephemeral=True)
+        embed = await build_cookie_view_embed(interaction.user.id, full=hien_thi_day_du)
+        await interaction.followup.send(embed=embed, ephemeral=True)
 
     @app_commands.command(name="session_remove", description="Xóa phiên đăng nhập Cookie HoYoLAB đã lưu")
     async def auto_session_remove(self, interaction: discord.Interaction):
@@ -184,7 +195,7 @@ class AutoCommands(commands.GroupCog, group_name="auto"):
         await interaction.response.defer(ephemeral=True)
         result = await automation_manager.run_manually(tac_vu.value)
         await interaction.followup.send(
-            f"⚡ **Kết quả thực thi {tac_vu.name}:**\n{result.get('message', 'Đã xử lý xong')}",
+            f"✦ **Kết quả thực thi {tac_vu.name}:**\n{result.get('message', 'Đã xử lý xong')}",
             ephemeral=True,
         )
 

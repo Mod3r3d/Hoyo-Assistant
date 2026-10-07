@@ -89,8 +89,8 @@ def _sync_render_character_card(
 
     is_hsr = (game == GameType.HSR)
     width = 960
-    height = 560 if is_hsr else 530
-    slot_h = 66 if is_hsr else 74
+    height = 560
+    slot_h = 66 if is_hsr else 76
     spacing = 8 if is_hsr else 10
     ry_start = 68 if is_hsr else 78
     max_relics = 6 if is_hsr else 5
@@ -212,11 +212,11 @@ def _sync_render_character_card(
     draw.text((52, 236), "CHỈ SỐ CHIẾN ĐẤU", fill=(180, 190, 205), font=font_stitle)
 
     stats = getattr(character, "stats", {})
-    start_stat_y = 258 if is_hsr else 265
-    stat_items = list(stats.items())[:11] if is_hsr else list(stats.items())[:8]
-    spacing_stat = 24 if len(stat_items) > 8 else (26 if is_hsr else 28)
-    font_sitem = get_font(12 if is_hsr else 13, bold=False)
-    font_sval = get_font(12 if is_hsr else 13, bold=True)
+    start_stat_y = 258
+    stat_items = list(stats.items())[:11]
+    spacing_stat = 23 if len(stat_items) > 9 else (25 if len(stat_items) > 7 else 28)
+    font_sitem = get_font(12 if len(stat_items) > 9 else 13, bold=False)
+    font_sval = get_font(12 if len(stat_items) > 9 else 13, bold=True)
 
     for i, (k, v) in enumerate(stat_items):
         cur_y = start_stat_y + i * spacing_stat

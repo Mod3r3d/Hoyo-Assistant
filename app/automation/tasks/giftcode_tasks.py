@@ -122,7 +122,7 @@ class GiftcodeRedeemTask(AutomationTask):
 
                 if status == "SUCCESS":
                     success_count += 1
-                    if auto_set.notify_mode in ("ALL", "FAILURE_ONLY"):
+                    if auto_set.notify_mode == "ALL":
                         await notification_service.notify_user(
                             discord_user_id=acc.discord_user_id,
                             title=f"🎁 Tự Động Đổi Mã Thành Công — {acc.game.display_name}",
@@ -132,6 +132,19 @@ class GiftcodeRedeemTask(AutomationTask):
                                 f"Vui lòng kiểm tra hòm thư trong game."
                             ),
                             color=settings.SUCCESS_COLOR,
+                            channel_id=auto_set.notify_channel_id,
+                        )
+                elif status in ("FAILED", "AUTH_REQUIRED"):
+                    if auto_set.notify_mode in ("ALL", "FAILURE_ONLY"):
+                        await notification_service.notify_user(
+                            discord_user_id=acc.discord_user_id,
+                            title=f"⚠️ Đổi Mã Thất Bại — {acc.game.display_name}",
+                            description=(
+                                f"Không thể đổi mã: **`{gift.code}`**\n"
+                                f"Tài khoản: **{acc.nickname or acc.uid}** (UID: `{acc.uid}`)\n"
+                                f"Lý do: {msg}"
+                            ),
+                            color=settings.ERROR_COLOR,
                             channel_id=auto_set.notify_channel_id,
                         )
 

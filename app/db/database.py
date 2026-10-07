@@ -171,8 +171,14 @@ class Database:
     async def connect(self):
         """Khởi tạo kết nối và bảng dữ liệu."""
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._connection = await aiosqlite.connect(str(self.db_path))
+        self._connection = await aiosqlite.connect(str(self.db_path), timeout=30.0)
         self._connection.row_factory = aiosqlite.Row
+
+        # Kích hoạt WAL mode và busy timeout để xử lý concurrency, chống lỗi "database is locked"
+        await self._connection.execute("PRAGMA journal_mode = WAL;")
+        await self._connection.execute("PRAGMA busy_timeout = 30000;")
+        await self._connection.execute("PRAGMA synchronous = NORMAL;")
+
         await self._connection.executescript(SCHEMA_SQL)
 
         # Migration an toàn cho các cột mới của bảng gift_codes

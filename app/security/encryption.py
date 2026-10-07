@@ -60,4 +60,42 @@ def mask_cookie(cookie: str) -> str:
     return f"{cookie[:4]}...{cookie[-4:]}"
 
 
+def inspect_cookie_tokens(raw_cookie: str, full: bool = False) -> dict:
+    """Phân tích các token có trong cookie và tạo chuỗi hiển thị an toàn."""
+    if not raw_cookie:
+        return {
+            "tokens": {},
+            "has_checkin": False,
+            "has_redeem": False,
+            "display_str": "Chưa có cookie nào được lưu.",
+            "raw_cookie": "",
+        }
+
+    parts = [p.strip() for p in raw_cookie.split(";") if p.strip()]
+    tokens = {}
+    for p in parts:
+        if "=" in p:
+            k, v = p.split("=", 1)
+            tokens[k.strip()] = v.strip()
+
+    has_checkin = bool(("ltoken_v2" in tokens or "ltoken" in tokens) and ("ltuid_v2" in tokens or "ltuid" in tokens))
+    has_redeem = bool("cookie_token_v2" in tokens or "cookie_token" in tokens)
+
+    display_parts = []
+    for k, v in tokens.items():
+        if not full and len(v) > 16:
+            masked_v = f"{v[:6]}...{v[-6:]}"
+        else:
+            masked_v = v
+        display_parts.append(f"{k}={masked_v}")
+
+    return {
+        "tokens": tokens,
+        "has_checkin": has_checkin,
+        "has_redeem": has_redeem,
+        "display_str": "; ".join(display_parts),
+        "raw_cookie": raw_cookie,
+    }
+
+
 cipher = SecretCipher()

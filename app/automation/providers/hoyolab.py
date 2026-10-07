@@ -131,6 +131,11 @@ class HoYoLABRedeemProvider:
             cookie_dict.setdefault("account_id", acc_id)
             cookie_dict.setdefault("account_id_v2", acc_id)
 
+        acc_mid = cookie_dict.get("account_mid") or cookie_dict.get("account_mid_v2") or cookie_dict.get("ltmid_v2")
+        if acc_mid:
+            cookie_dict.setdefault("account_mid", acc_mid)
+            cookie_dict.setdefault("account_mid_v2", acc_mid)
+
         c_token = cookie_dict.get("cookie_token") or cookie_dict.get("cookie_token_v2")
         if c_token:
             cookie_dict.setdefault("cookie_token", c_token)
@@ -143,6 +148,8 @@ class HoYoLABRedeemProvider:
             "Cookie": final_cookie,
             "Referer": f"{origin}/",
             "Origin": origin,
+            "Accept": "application/json, text/plain, */*",
+            "Connection": "keep-alive",
         }
 
         try:
@@ -155,14 +162,14 @@ class HoYoLABRedeemProvider:
 
                         if retcode == 0:
                             return "SUCCESS", "Đổi mã thành công! Phần thưởng đã được gửi vào hòm thư trong game."
-                        elif retcode == -2017:
+                        elif retcode in (-2017, -2018):
                             return "ALREADY_REDEEMED", "Mã này đã được đổi trên tài khoản này từ trước."
-                        elif retcode == -2003:
+                        elif retcode in (-2003, -2004):
                             return "INVALID_CODE", "Mã giftcode không tồn tại hoặc không hợp lệ."
-                        elif retcode == -2016:
+                        elif retcode in (-2016, -2001):
                             return "EXPIRED", "Mã giftcode đã hết hạn sử dụng."
                         elif retcode in (-1071, -1073, -100):
-                            return "AUTH_REQUIRED", f"Lỗi xác thực tài khoản: {msg}"
+                            return "AUTH_REQUIRED", f"Lỗi xác thực tài khoản ({retcode}): {msg}"
                         else:
                             return "FAILED", f"Lỗi ({retcode}): {msg}"
                     else:
