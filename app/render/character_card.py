@@ -212,11 +212,27 @@ def _sync_render_character_card(
     draw.text((52, 236), "CHỈ SỐ CHIẾN ĐẤU", fill=(180, 190, 205), font=font_stitle)
 
     stats = getattr(character, "stats", {})
-    start_stat_y = 258
-    stat_items = list(stats.items())[:11]
-    spacing_stat = 23 if len(stat_items) > 9 else (25 if len(stat_items) > 7 else 28)
-    font_sitem = get_font(12 if len(stat_items) > 9 else 13, bold=False)
-    font_sval = get_font(12 if len(stat_items) > 9 else 13, bold=True)
+    stat_items = list(stats.items())[:13]
+    if len(stat_items) >= 12:
+        start_stat_y = 254
+        spacing_stat = 21
+        font_sitem = get_font(11, bold=False)
+        font_sval = get_font(11, bold=True)
+    elif len(stat_items) >= 10:
+        start_stat_y = 256
+        spacing_stat = 23
+        font_sitem = get_font(12, bold=False)
+        font_sval = get_font(12, bold=True)
+    elif len(stat_items) >= 8:
+        start_stat_y = 258
+        spacing_stat = 25
+        font_sitem = get_font(12, bold=False)
+        font_sval = get_font(12, bold=True)
+    else:
+        start_stat_y = 260
+        spacing_stat = 28
+        font_sitem = get_font(13, bold=False)
+        font_sval = get_font(13, bold=True)
 
     for i, (k, v) in enumerate(stat_items):
         cur_y = start_stat_y + i * spacing_stat

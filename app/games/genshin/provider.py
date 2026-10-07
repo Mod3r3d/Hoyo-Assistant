@@ -20,6 +20,7 @@ from app.games.genshin.build_data import get_genshin_build
 from app.integrations.enka_client import enka_client
 from app.utils.localization import translate_stat, format_stat_value
 import json
+import re
 from pathlib import Path
 
 LOC_VI_PATH = Path(__file__).parent / "loc_vi.json"
@@ -45,6 +46,49 @@ SLOT_NAMES: Dict[str, str] = {
     "EQUIP_SHOES": "Cát Thời Gian",
     "EQUIP_RING": "Ly Không Gian",
     "EQUIP_DRESS": "Nón Lý Trí",
+}
+
+GENSHIN_RELIC_SETS: Dict[str, str] = {
+    "15001": "Lễ Bế Mạc Của Giác Đấu Sĩ",
+    "15002": "Đoàn Hát Lang Thang Đại Lục",
+    "15003": "Đoàn Hát Lang Thang Đại Lục",
+    "15005": "Nghi Thức Tông Thất Cổ",
+    "15006": "Kỵ Sĩ Đạo Nhuốm Máu",
+    "15007": "Thiếu Nữ Đáng Yêu",
+    "15008": "Bóng Hình Của Gió",
+    "15009": "Phiến Đá Lâu Đời",
+    "15010": "Sao Băng Bay Ngược",
+    "15011": "Diệm Liệt Ma Nữ Cháy Rực",
+    "15012": "Hiền Giả Bốc Lửa",
+    "15013": "Dũng Sĩ Băng Giá",
+    "15014": "Trầm Luân Giữa Tâm Hải",
+    "15015": "Thiên Nham Vững Chắc",
+    "15016": "Lửa Trắng Xám",
+    "15017": "Dòng Hồi Ức Bất Tận",
+    "15018": "Giấc Mộng Phù Hoa",
+    "15019": "Xà Cừ Đại Dương",
+    "15020": "Dấu Ấn Ngăn Cách",
+    "15021": "Tử Sa Chìm Đắm",
+    "15022": "Dư Âm Tế Lễ",
+    "15023": "Ký Ức Rừng Sâu",
+    "15024": "Giấc Mộng Hoàng Kim",
+    "15025": "Sử Ký Đình Cát",
+    "15026": "Đóa Hoa Trang Viên Đánh Mất",
+    "15027": "Giấc Mộng Thủy Tiên",
+    "15028": "Vầng Sáng Vourukasha",
+    "15029": "Thợ Săn Marechaussee",
+    "15030": "Đoàn Kịch Hoàng Kim",
+    "15031": "Bài Ca Ngày Cũ",
+    "15032": "Tiếng Thì Thầm Trong Rừng Vang",
+    "15033": "Mảnh Ảo Tưởng Hài Hòa",
+    "15034": "Ảo Tưởng Chưa Hoàn Thành",
+    "15035": "Bí Điển Dũng Sĩ Tro Tàn",
+    "15036": "Mật Mã Hắc Diệu",
+    "14001": "Giáo Quan",
+    "14002": "Kẻ Lưu Đày",
+    "14003": "Học Sĩ",
+    "14004": "Thiếu Nữ Đáng Yêu",
+    "10003": "Cuồng Chiến",
 }
 
 
@@ -129,37 +173,55 @@ class GenshinProvider(GameProvider):
 
             # HP
             cur_hp = get_prop(2000) or get_prop(1)
-            if cur_hp:
-                stats_dict["HP"] = format_stat_value(cur_hp)
+            stats_dict["HP"] = f"{int(round(cur_hp)):,}"
 
-            # ATK
+            # Tấn Công
             cur_atk = get_prop(2001) or get_prop(4)
-            if cur_atk:
-                stats_dict["Tấn Công"] = format_stat_value(cur_atk)
+            stats_dict["Tấn Công"] = f"{int(round(cur_atk)):,}"
 
-            # DEF
+            # Phòng Ngự
             cur_def = get_prop(2002) or get_prop(7)
-            if cur_def:
-                stats_dict["Phòng Ngự"] = format_stat_value(cur_def)
+            stats_dict["Phòng Ngự"] = f"{int(round(cur_def)):,}"
 
-            # EM
+            # Tinh Thông NT (Luôn hiển thị kể cả = 0)
             em = get_prop(28)
-            if em:
-                stats_dict["Tinh Thông NT"] = format_stat_value(em)
+            stats_dict["Tinh Thông NT"] = f"{int(round(em)):,}"
 
             # CR
             cr = get_prop(20) * 100
-            stats_dict["Tỷ Lệ Bạo Kích"] = format_stat_value(cr, is_percent=True)
+            stats_dict["Tỷ Lệ Bạo Kích"] = f"{cr:.1f}%"
 
             # CD
             cd = get_prop(22) * 100
-            stats_dict["ST Bạo Kích"] = format_stat_value(cd, is_percent=True)
+            stats_dict["ST Bạo Kích"] = f"{cd:.1f}%"
 
             # ER
             er = get_prop(23) * 100
-            stats_dict["Hiệu Quả Nạp NT"] = format_stat_value(er, is_percent=True)
+            stats_dict["Hiệu Quả Nạp NT"] = f"{er:.1f}%"
 
-            # Tăng Sát Thương Nguyên Tố & Vật Lý (Nếu có giá trị > 0)
+            # Năng Lượng NT (Chi phí Kỹ Năng Nộ / Burst Cost)
+            burst_costs = [get_prop(p) for p in range(70, 79)]
+            energy_cost = int(round(max(burst_costs))) if burst_costs else 0
+            if energy_cost > 0:
+                stats_dict["Năng Lượng NT"] = str(energy_cost)
+
+            # Sát Thương Nguyên Tố của nhân vật (Luôn hiển thị theo hệ của nhân vật)
+            element_prop_map = {
+                "Pyro": (40, "Tăng ST Hỏa"),
+                "Electro": (41, "Tăng ST Lôi"),
+                "Hydro": (42, "Tăng ST Thủy"),
+                "Dendro": (43, "Tăng ST Thảo"),
+                "Anemo": (44, "Tăng ST Phong"),
+                "Geo": (45, "Tăng ST Nham"),
+                "Cryo": (46, "Tăng ST Băng"),
+            }
+            char_elem = meta.get("element", "")
+            primary_elem_prop, primary_elem_name = element_prop_map.get(char_elem, (None, None))
+            if primary_elem_prop:
+                val = get_prop(primary_elem_prop) * 100
+                stats_dict[primary_elem_name] = f"{val:.1f}%"
+
+            # Các thuộc tính sát thương khác (Vật lý hoặc nguyên tố khác nếu > 0.05%)
             elemental_props = [
                 (40, "Tăng ST Hỏa"),
                 (41, "Tăng ST Lôi"),
@@ -171,19 +233,20 @@ class GenshinProvider(GameProvider):
                 (30, "Tăng ST Vật Lý"),
             ]
             for prop_id, prop_name in elemental_props:
-                val = get_prop(prop_id) * 100
-                if val > 0.05:
-                    stats_dict[prop_name] = format_stat_value(val, is_percent=True)
+                if prop_name != primary_elem_name:
+                    val = get_prop(prop_id) * 100
+                    if val > 0.05:
+                        stats_dict[prop_name] = f"{val:.1f}%"
 
             # Tăng Trị Liệu (Nếu có)
             heal_bonus = get_prop(26) * 100
             if heal_bonus > 0.05:
-                stats_dict["Tăng Trị Liệu"] = format_stat_value(heal_bonus, is_percent=True)
+                stats_dict["Tăng Trị Liệu"] = f"{heal_bonus:.1f}%"
 
             # Hiệu Quả Khiên (Nếu có)
             shield_bonus = get_prop(81) * 100
             if shield_bonus > 0.05:
-                stats_dict["Hiệu Quả Khiên"] = format_stat_value(shield_bonus, is_percent=True)
+                stats_dict["Hiệu Quả Khiên"] = f"{shield_bonus:.1f}%"
 
             # Trang bị (Vũ khí & Thánh Di Vật)
             weapon: Optional[GenshinWeapon] = None
@@ -216,15 +279,39 @@ class GenshinProvider(GameProvider):
                 elif item_type == "ITEM_RELIQUARY":
                     r_info = equip.get("reliquary", {})
                     relic_main = flat.get("reliquaryMainstat", {})
-                    main_stat_name = translate_stat(relic_main.get("mainPropId", ""))
+                    main_prop_id = relic_main.get("mainPropId", "")
+                    main_stat_name = translate_stat(main_prop_id)
                     main_stat_val = relic_main.get("statValue", 0)
+                    is_percent_main = (
+                        "PERCENT" in main_prop_id
+                        or main_prop_id in [
+                            "FIGHT_PROP_CHARGE_EFFICIENCY",
+                            "FIGHT_PROP_CRITICAL",
+                            "FIGHT_PROP_CRITICAL_HURT",
+                            "FIGHT_PROP_HEAL_ADD",
+                        ]
+                        or "_ADD_HURT" in main_prop_id
+                    )
+                    main_val_str = f"{main_stat_val:.1f}%" if is_percent_main else f"{int(round(main_stat_val)):,}"
 
                     # Substats
                     sub_list = []
                     for sub in flat.get("reliquarySubstats", []):
-                        sub_name = translate_stat(sub.get("appendPropId", ""))
+                        prop_id = sub.get("appendPropId", "")
+                        sub_name = translate_stat(prop_id)
                         val = sub.get("statValue", 0)
-                        sub_list.append(f"{sub_name}: +{val}")
+                        is_percent_sub = (
+                            "PERCENT" in prop_id
+                            or prop_id in [
+                                "FIGHT_PROP_CHARGE_EFFICIENCY",
+                                "FIGHT_PROP_CRITICAL",
+                                "FIGHT_PROP_CRITICAL_HURT",
+                                "FIGHT_PROP_HEAL_ADD",
+                            ]
+                            or "_ADD_HURT" in prop_id
+                        )
+                        val_str = f"+{val:.1f}%" if is_percent_sub else f"+{int(round(val))}"
+                        sub_list.append(f"{sub_name}: {val_str}")
 
                     slot_key = flat.get("equipType", "")
                     slot_display = SLOT_NAMES.get(slot_key, slot_key)
@@ -232,10 +319,15 @@ class GenshinProvider(GameProvider):
                     raw_set_hash = flat.get("setNameTextMapHash")
                     set_display = get_text_map(raw_set_hash, "Bộ Thánh Di Vật")
 
+                    icon_name = flat.get("icon", "")
+                    if set_display in ["Bộ Thánh Di Vật", ""] and icon_name:
+                        m = re.search(r"UI_RelicIcon_(\d+)_\d+", icon_name)
+                        if m and m.group(1) in GENSHIN_RELIC_SETS:
+                            set_display = GENSHIN_RELIC_SETS[m.group(1)]
+
                     raw_piece_hash = flat.get("nameTextMapHash")
                     piece_name = get_text_map(raw_piece_hash, slot_display)
 
-                    icon_name = flat.get("icon", "")
                     artifacts.append(
                         GenshinArtifact(
                             name=piece_name,
@@ -244,11 +336,12 @@ class GenshinProvider(GameProvider):
                             rarity=flat.get("rankLevel", 5),
                             level=r_info.get("level", 1) - 1,
                             main_stat=main_stat_name,
-                            main_value=str(main_stat_val),
+                            main_value=main_val_str,
                             sub_stats=sub_list,
                             icon_url=f"https://enka.network/ui/{icon_name}.png" if icon_name else "",
                         )
                     )
+
 
             icon_url = get_genshin_icon_url(char_id)
 

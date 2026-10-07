@@ -38,6 +38,7 @@ PROPERTIES = _load_hsr_data("properties.json")
 CHARACTER_PROMOTIONS = _load_hsr_data("character_promotions.json")
 SKILL_TREES = _load_hsr_data("character_skill_trees.json")
 LIGHT_CONE_RANKS = _load_hsr_data("light_cone_ranks.json")
+CHARACTERS_DATA = _load_hsr_data("characters.json")
 
 
 class StarRailProvider(GameProvider):
@@ -277,6 +278,9 @@ class StarRailProvider(GameProvider):
                         for p in lc_props_list[lc_rank - 1]:
                             apply_prop(p.get("type", ""), p.get("value", 0))
 
+            char_json_info = CHARACTERS_DATA.get(str(char_id), {})
+            max_sp = char_json_info.get("max_sp", 100)
+
             final_hp = int(base_hp * (1 + hp_ratio) + hp_delta)
             final_atk = int(base_atk * (1 + atk_ratio) + atk_delta)
             final_def = int(base_def * (1 + def_ratio) + def_delta)
@@ -293,21 +297,32 @@ class StarRailProvider(GameProvider):
                 "ST Bạo Kích": f"{final_cd:.1f}%",
             }
 
-            # Bổ sung các chỉ số thứ cấp (Tăng Sát Thương, Kích Phá, Hiệu Ứng, Hồi Năng Lượng)
+            # Sát thương thuộc tính nguyên tố chính của nhân vật (Luôn hiển thị)
+            elem_stat_name = f"Tăng Sát Thương {meta.get('element', '')}"
+            stats_dict[elem_stat_name] = f"{dmg_boosts.get(elem_stat_name, 0.0) * 100:.1f}%"
+
+            # Các loại tăng sát thương khác nếu có
             for dname, dval in dmg_boosts.items():
-                if dval > 0.0001:
+                if dname != elem_stat_name and dval > 0.0001:
                     stats_dict[dname] = f"{dval * 100:.1f}%"
-            if break_delta > 0.0001:
-                stats_dict["Tấn Công Kích Phá"] = f"{break_delta * 100:.1f}%"
-            if effect_res_delta > 0.0001:
-                stats_dict["Kháng Hiệu Ứng"] = f"{effect_res_delta * 100:.1f}%"
-            if effect_hit_delta > 0.0001:
-                stats_dict["Chính Xác Hiệu Ứng"] = f"{effect_hit_delta * 100:.1f}%"
-            
-            # Luôn hiển thị Hiệu Suất Hồi Năng Lượng (Mặc định 100.0%)
+
+            # Tấn Công Kích Phá
+            stats_dict["Tấn Công Kích Phá"] = f"{break_delta * 100:.1f}%"
+
+            # Hiệu Suất Hồi Năng Lượng (Mặc định 100.0%)
             stats_dict["Hồi Năng Lượng"] = f"{(1.0 + sp_delta) * 100:.1f}%"
 
-            if heal_delta > 0.0001:
+            # Năng Lượng Tối Đa
+            stats_dict["Năng Lượng Tối Đa"] = str(max_sp)
+
+            # Chính Xác Hiệu Ứng
+            stats_dict["Chính Xác Hiệu Ứng"] = f"{effect_hit_delta * 100:.1f}%"
+
+            # Kháng Hiệu Ứng
+            stats_dict["Kháng Hiệu Ứng"] = f"{effect_res_delta * 100:.1f}%"
+
+            # Tăng Trị Liệu (Nếu > 0 hoặc nhân vật Trù Phú)
+            if heal_delta > 0.0001 or meta.get("path") == "Trù Phú":
                 stats_dict["Tăng Trị Liệu"] = f"{heal_delta * 100:.1f}%"
 
             icon_url = f"https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/icon/avatar/{char_id}.png"
